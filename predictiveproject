@@ -1,0 +1,69 @@
+import numpy as np 
+import pandas as pd 
+import matplotlib.pyplot as plt 
+import seaborn as sns 
+import plotly as py
+import plotly.graph_objs as go
+from sklearn.cluster import KMeans
+import warnings
+warnings.filterwarnings("ignore")
+df = pd.read_csv("Mall_Customers.csv")
+df.head()
+df.shape
+df = df.rename(columns={'Annual Income (k$)': 'Annual_income', 'Spending Score (1-100)': 'Spending_score'})
+df.info()
+df['Gender'].replace(['Female','Male'], [0,1],inplace=True)
+plt.figure(1 , figsize = (15 , 6))
+feature_list = ['Age','Annual_income', "Spending_score"]
+feature_listt = ['Age','Annual_income', "Spending_score"]
+pos = 1 
+for i in feature_list:
+    plt.subplot(1 , 3 , pos)
+    plt.subplots_adjust(hspace = 0.5 , wspace = 0.5)
+    sns.distplot(df[i], bins=20, kde = True)
+    pos = pos + 1
+plt.show()
+sns.countplot(y = 'Gender', data = df, palette="husl", hue = "Gender")
+df["Gender"].value_counts()
+sns.pairplot(df, vars=["Age", "Annual_income", "Spending_score"],  kind ="reg", hue = "Gender", palette="husl", markers = ['o','D'])
+sns.lmplot(x = "Age", y = "Annual_income", data = df, hue = "Gender")
+sns.lmplot(x = "Annual_income", y = "Spending_score", data = df, hue = "Gender")
+sns.lmplot(x = "Annual_income", y = "Spending_score", data = df, hue = "Gender")
+X = df.loc[:,["Age", "Annual_income", "Spending_score"]]
+inertia = []
+k = range(1,20)
+for i in k:
+    means_k = KMeans(n_clusters=i, random_state=0)
+    means_k.fit(X)
+    inertia.append(means_k.inertia_)
+    plt.plot(k , inertia , 'bo-')
+plt.xlabel('Number of Clusters') , plt.ylabel('Inertia')
+plt.show()
+means_k = KMeans(n_clusters=5, random_state=0)
+means_k.fit(X)
+labels = means_k.labels_
+centroids = means_k.cluster_centers_
+trace1 = go.Scatter3d(
+    x= X['Spending_score'],
+    y= X['Annual_income'],
+    z= X['Age'],
+    mode='markers',
+     marker=dict(
+        color = labels, 
+        size= 10,
+        line=dict(
+            color= labels,
+        ),
+        opacity = 0.9
+     )
+)
+layout = go.Layout(
+    title= 'Clusters',
+    scene = dict(
+            xaxis = dict(title  = 'Spending_score'),
+            yaxis = dict(title  = 'Annual_income'),
+            zaxis = dict(title  = 'Age')
+        )
+)
+fig = go.Figure(data=trace1, layout=layout)
+py.offline.iplot(fig).
